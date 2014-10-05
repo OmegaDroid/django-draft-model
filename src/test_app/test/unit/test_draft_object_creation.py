@@ -31,10 +31,9 @@ class DraftObjectCreation(TestCase):
         m.save()
 
         self.assertIsNone(TestModel.objects.first().published_time)
-    #
-    #
-    # def test_object_with_draft_is_created_with_int_field___draft_has_correct_field_value(self):
-    #     m = TestModel(int_field=123)
-    #     m.save()
-    #
-    #     self.assertEqual(123, m.draft.int_field)
+
+    def test_object_with_draft_is_created_with_int_field___draft_has_correct_field_value(self):
+        m = TestModel(int_field=123)
+        m.save()
+
+        self.assertEqual(123, m.draft.int_field)

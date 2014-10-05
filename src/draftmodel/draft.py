@@ -4,6 +4,10 @@ from django.db.models.signals import pre_save
 from django.utils.timezone import now
 
 
+def _is_copyable_field(field):
+    return type(field).__name__ != "AutoField"
+
+
 def _draft_creation(sender, **kwargs):
     current_time = now()
 
@@ -11,6 +15,11 @@ def _draft_creation(sender, **kwargs):
     instance.creation_time = current_time
     instance.edited_time = current_time
     draft_instance = sender.draft_class()
+
+    for field in instance._meta.local_fields:
+        if _is_copyable_field(field):
+            setattr(draft_instance, field.attname, getattr(instance, field.attname))
+
     draft_instance.save()
 
     instance.draft = draft_instance
@@ -23,6 +32,10 @@ def draft(cls):
 
     class _Draft(models.Model):
         pass
+
+    for field in cls._meta.local_fields:
+        if _is_copyable_field(field):
+            _Draft.add_to_class(field.attname, field)
 
     class_name = "Draft_{cls}".format(cls=cls.__name__)
     setattr(inspect.getmodule(cls), class_name, _Draft)
