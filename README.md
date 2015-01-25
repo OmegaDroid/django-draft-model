@@ -1,6 +1,8 @@
 django-draft-model
 ==================
 
+[![Build Status](https://travis-ci.org/OmegaDroid/django-draft-model.svg?branch=master)](https://travis-ci.org/OmegaDroid/django-draft-model.svg?branch=master)
+
 Manages creation, editing and publishing of drafts model objects for editing.
 
 Aims
