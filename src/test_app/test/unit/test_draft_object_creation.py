@@ -37,3 +37,14 @@ class DraftObjectCreation(TestCase):
         m.save()
 
         self.assertEqual(123, m.draft.int_field)
+
+    def test_object_with_draft_is_created_and_changed___draft_object_is_the_same_object(self):
+        m = TestModel()
+        m.save()
+
+        draft_id = m.draft.id
+
+        m.int_field = 123
+        m.save()
+        
+        self.assertEqual(draft_id, m.draft.id)

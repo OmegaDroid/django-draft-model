@@ -14,7 +14,11 @@ def _draft_creation(sender, **kwargs):
     instance = kwargs["instance"]
     instance.creation_time = current_time
     instance.edited_time = current_time
-    draft_instance = sender.draft_class()
+
+    if not instance.draft_id:
+        draft_instance = instance.draft_class()
+    else:
+        draft_instance = instance.draft
 
     for field in instance._meta.local_fields:
         if _is_copyable_field(field):
