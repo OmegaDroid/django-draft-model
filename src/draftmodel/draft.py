@@ -8,10 +8,9 @@ def _is_copyable_field(field):
     return type(field).__name__ != "AutoField"
 
 
-def _draft_creation(sender, **kwargs):
+def _draft_save(instance, *args, **kwargs):
     current_time = now()
 
-    instance = kwargs["instance"]
     instance.creation_time = current_time
     instance.edited_time = current_time
 
@@ -24,9 +23,26 @@ def _draft_creation(sender, **kwargs):
         if _is_copyable_field(field):
             setattr(draft_instance, field.attname, getattr(instance, field.attname))
 
-    draft_instance.save()
+    draft_instance.save(*args, **kwargs)
 
     instance.draft = draft_instance
+
+
+def _patch_methods(cls):
+
+    # patch out the save method
+    _orig_save = cls.save
+
+    def _new_save(self, *args, **kwargs):
+        _draft_save(self, *args, **kwargs)
+
+        if not self._state.adding:
+            kwargs["update_fields"] = []
+        _orig_save(self, *args, **kwargs)
+
+    cls.save = _new_save
+
+    return cls
 
 
 def draft(cls):
@@ -49,6 +65,4 @@ def draft(cls):
 
     cls.add_to_class("draft", models.ForeignKey(draft_class))
 
-    pre_save.connect(_draft_creation, sender=cls)
-
-    return cls
+    return _patch_methods(cls)
