@@ -1,11 +1,11 @@
 import inspect
+
 from django.db import models
-from django.db.models.signals import pre_save
 from django.utils.timezone import now
 
 
 def _is_copyable_field(field):
-    return type(field).__name__ != "AutoField"
+    return type(field).__name__ != "AutoField" and field.name != "draft"
 
 
 def _draft_save(instance, *args, **kwargs):
@@ -18,7 +18,7 @@ def _draft_save(instance, *args, **kwargs):
 
     for field in instance._meta.local_fields:
         if _is_copyable_field(field):
-            setattr(draft_instance, field.attname, getattr(instance, field.attname))
+            setattr(draft_instance, field.attname, getattr(instance, field.name))
 
     draft_instance.creation_time = current_time
     draft_instance.edited_time = current_time
@@ -26,6 +26,18 @@ def _draft_save(instance, *args, **kwargs):
     draft_instance.save(*args, **kwargs)
 
     instance.draft = draft_instance
+
+
+def _draft_to_base(instance):
+    current_time = now()
+
+    instance.draft.published_time = current_time
+
+    for field in instance._meta.local_fields:
+        if _is_copyable_field(field):
+            setattr(instance, field.attname, getattr(instance.draft, field.name))
+
+    instance.draft.save()
 
 
 def _patch_methods(cls):
@@ -41,6 +53,15 @@ def _patch_methods(cls):
         _orig_save(self, *args, **kwargs)
 
     cls.save = _new_save
+
+    # create publish method
+
+    def _publish(self):
+        _draft_to_base(self)
+
+        _orig_save(self)
+
+    cls.publish = _publish
 
     return cls
 
