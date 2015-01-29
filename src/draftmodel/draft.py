@@ -11,9 +11,6 @@ def _is_copyable_field(field):
 def _draft_save(instance, *args, **kwargs):
     current_time = now()
 
-    instance.creation_time = current_time
-    instance.edited_time = current_time
-
     if not instance.draft_id:
         draft_instance = instance.draft_class()
     else:
@@ -22,6 +19,9 @@ def _draft_save(instance, *args, **kwargs):
     for field in instance._meta.local_fields:
         if _is_copyable_field(field):
             setattr(draft_instance, field.attname, getattr(instance, field.attname))
+
+    draft_instance.creation_time = current_time
+    draft_instance.edited_time = current_time
 
     draft_instance.save(*args, **kwargs)
 

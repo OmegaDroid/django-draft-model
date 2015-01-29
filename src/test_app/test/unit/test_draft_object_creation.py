@@ -13,18 +13,32 @@ class DraftObjectCreation(TestCase):
         self.assertIsNotNone(TestModel.objects.first().draft)
 
     @patch("draftmodel.draft.now", Mock(return_value=datetime(2014, 1, 1, tzinfo=utc)))
-    def test_object_with_draft_created___created_instance_has_correct_creation_time(self):
+    def test_object_with_draft_created___created_instance_has_no_creation_time(self):
         m = TestModel()
         m.save()
 
-        self.assertEqual(datetime(2014, 1, 1, tzinfo=utc), TestModel.objects.first().creation_time)
+        self.assertIsNone(TestModel.objects.first().creation_time)
 
     @patch("draftmodel.draft.now", Mock(return_value=datetime(2014, 1, 1, tzinfo=utc)))
-    def test_object_with_draft_created___created_instance_has_correct_edited_time(self):
+    def test_object_with_draft_created___created_instance_has_no_edited_time(self):
         m = TestModel()
         m.save()
 
-        self.assertEqual(datetime(2014, 1, 1, tzinfo=utc), TestModel.objects.first().edited_time)
+        self.assertIsNone(TestModel.objects.first().edited_time)
+
+    @patch("draftmodel.draft.now", Mock(return_value=datetime(2014, 1, 1, tzinfo=utc)))
+    def test_object_with_draft_created___created_instance_draft_has_correct_creation_time(self):
+        m = TestModel()
+        m.save()
+
+        self.assertEqual(datetime(2014, 1, 1, tzinfo=utc), TestModel.objects.first().draft.creation_time)
+
+    @patch("draftmodel.draft.now", Mock(return_value=datetime(2014, 1, 1, tzinfo=utc)))
+    def test_object_with_draft_created___created_instance_draft_has_correct_edited_time(self):
+        m = TestModel()
+        m.save()
+
+        self.assertEqual(datetime(2014, 1, 1, tzinfo=utc), TestModel.objects.first().draft.edited_time)
 
     def test_object_with_draft_created___created_instance_publish_time_is_None(self):
         m = TestModel()
